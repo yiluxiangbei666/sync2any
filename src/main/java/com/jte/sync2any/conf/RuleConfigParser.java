@@ -117,6 +117,9 @@ public class RuleConfigParser {
                     if (Objects.nonNull(tableMeta)) {
                         tableMetaList.add(tableMeta);
                     }
+                    if (Objects.isNull(RULES_MAP.getIfPresent(config.getTargetDbId() + "$" + config.getSourceDbId() + "$" + tableName.toLowerCase()))) {
+                        RULES_MAP.put(config.getTargetDbId() + "$" + config.getSourceDbId() + "$" + tableName.toLowerCase(), tableMeta);
+                    }
                 }
             }
         }
