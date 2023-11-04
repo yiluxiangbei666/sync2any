@@ -30,6 +30,9 @@ public class MysqlDynamicDataAssignImpl extends DynamicDataAssign {
      */
     private static final String FIND_SUFFIX_SQL_TEMPLATE = "SELECT suffix_name FROM t_pms_table_router WHERE group_code= ?;";
 
+    private static final String DYNAMIC_TABLE_SUFFIX_NAME = "SELECT distinct(suffix_name) FROM t_pms_table_router;";
+
+    private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS %s LIKE t_pms_booking_log";
     /**
      * key:targetDbId_groupCode
      * value:suffix name
@@ -56,5 +59,15 @@ public class MysqlDynamicDataAssignImpl extends DynamicDataAssign {
         suffixName = suffixNameList.get(0);
         groupTableName.put(key,suffixName);
         return originTableName+suffixName;
+    }
+
+    @Override
+    public void init(String targetDbId, String originTableName, Object shardingValue) {
+        JdbcTemplate jdbcTemplate = (JdbcTemplate) DbUtils.getTargetDsByDbId(allTargetDatasource,targetDbId);
+        log.debug("shardingValue:{}",shardingValue);
+        List<String> suffixNameList = jdbcTemplate.queryForList(DYNAMIC_TABLE_SUFFIX_NAME,String.class);
+        for (String s : suffixNameList) {
+            jdbcTemplate.execute(String.format(CREATE_TABLE, originTableName + s));
+        }
     }
 }

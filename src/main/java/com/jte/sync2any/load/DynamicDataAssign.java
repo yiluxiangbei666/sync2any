@@ -6,8 +6,10 @@ import com.jte.sync2any.model.mysql.Field;
 import com.jte.sync2any.model.mysql.Row;
 import com.jte.sync2any.model.mysql.TableMeta;
 import com.jte.sync2any.model.mysql.TableRecords;
+import com.jte.sync2any.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +36,7 @@ public abstract class DynamicDataAssign {
      * @return
      */
     public static String getDynamicTableName(TableRecords records,TableMeta tableMeta){
+        log.info("tableMeta dynamic table name assigner:"+tableMeta.getDynamicTablenameAssigner());
         if(StringUtils.isNotBlank(tableMeta.getDynamicTablenameAssigner())){
             Object shardingValue = getShardingValue(records,tableMeta.getShardingKey());
             return getDynamicTableName(shardingValue,tableMeta);
@@ -50,6 +53,7 @@ public abstract class DynamicDataAssign {
      * @return
      */
     public static String getDynamicTableName(Object ShardingValue,TableMeta tableMeta){
+        log.info("tableMeta dynamic table name assigner:"+tableMeta.getDynamicTablenameAssigner());
         if(StringUtils.isNotBlank(tableMeta.getDynamicTablenameAssigner())){
             DynamicDataAssign assigner = DynamicDataAssign.getDynamicDataAssign(tableMeta);
             String tableName = assigner.dynamicTableName(tableMeta.getTargetDbId(),tableMeta.getTargetTableName(),ShardingValue);
@@ -65,7 +69,7 @@ public abstract class DynamicDataAssign {
      * @param tableMeta
      * @return
      */
-    private static DynamicDataAssign getDynamicDataAssign(TableMeta tableMeta){
+    public static DynamicDataAssign getDynamicDataAssign(TableMeta tableMeta){
         String assigner = tableMeta.getDynamicTablenameAssigner();
         DynamicDataAssign dynamicDataAssign = (DynamicDataAssign) SpringContextUtils.getContext().getBean(assigner);
         if(Objects.isNull(assigner)){
@@ -98,5 +102,10 @@ public abstract class DynamicDataAssign {
         return field.getValue();
     }
 
-
+    /***
+     * 动态表名
+     * @param shardingValue
+     * @return
+     */
+    public abstract void init(String targetDbId, String originTableName, Object shardingValue);
 }

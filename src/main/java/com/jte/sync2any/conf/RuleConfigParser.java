@@ -10,6 +10,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.jte.sync2any.exception.ShouldNeverHappenException;
 import com.jte.sync2any.extract.impl.MysqlMetaExtractImpl;
+import com.jte.sync2any.load.DynamicDataAssign;
 import com.jte.sync2any.model.config.*;
 import com.jte.sync2any.model.es.EsDateType;
 import com.jte.sync2any.model.mysql.ColumnMeta;
@@ -339,6 +340,11 @@ public class RuleConfigParser {
             if (!isContainPk) {
                 throw new ShouldNeverHappenException("fields filter must contain pk column!");
             }
+        }
+
+        if (Objects.nonNull(tableMeta.getDynamicTablenameAssigner())) {
+            DynamicDataAssign assigner = DynamicDataAssign.getDynamicDataAssign(tableMeta);
+            assigner.init(tableMeta.getTargetDbId(), tableMeta.getTargetTableName(), tableMeta.getShardingKey());
         }
         //计算字段
         if (StringUtils.isNotBlank(rule.getMap())) {
